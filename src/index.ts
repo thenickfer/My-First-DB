@@ -31,8 +31,8 @@ type Review = z.infer<typeof MovieSchema>;
 
 
 async function createUser(name: any, email: any, pass: any) {
-    email = email.trim();
-    if ((await prisma.user.findMany({ where: { OR: [{ email: email }, { name: name }] } })) == null) {
+    email = email.trim().toLowerCase();
+    if ((await prisma.user.findMany({ where: { OR: [{ email: email }, { name: name }] } })).length == 0) {
         const newUser = {
             name: name,
             email: email,

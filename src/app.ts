@@ -5,7 +5,7 @@ import { createUser, prisma } from "./index";
 
 async function main() {
 
-    createUser("NelsonMalandro", "nelson@roubacartao.com", "12345");
+    createUser("CleitonMalandro", "cleiton@roubacartao.com", "12345");
 
 
 }
