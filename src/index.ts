@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-export { createUser, prisma };
+export { createUser, prisma, getUsers, getMovies };
 
 const prisma = new PrismaClient();
 
@@ -55,7 +55,16 @@ async function createUser(name: any, email: any, pass: any) {
 }
 
 
+async function getUsers() {
+    const users = await prisma.user.findMany();
+    return users;
+}
 
 
+async function getMovies() {
+    const movies = await prisma.movie.findMany({ include: { reviews: true } });
+    console.dir(movies, { depth: null })
+    return movies;
+}
 
 
