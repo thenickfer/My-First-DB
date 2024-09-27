@@ -1,0 +1,19 @@
+model Actor {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  name     String   @unique
+  movieIDs String[] @db.ObjectId
+  movies   Movie[]  @relation(fields: [movieIDs], references: [id])
+}
+
+model Director {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  movies Movie[]
+}
+
+type Address {
+  street String
+  city   String
+  state  String
+  zip    String
+}
