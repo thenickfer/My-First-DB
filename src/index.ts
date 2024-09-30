@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-export { createUser, prisma, getUsers, getMovies };
+export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser };
 
 const prisma = new PrismaClient();
 
@@ -32,7 +32,7 @@ type Review = z.infer<typeof MovieSchema>;
 
 async function createUser(name: any, email: any, pass: any) {
     email = email.trim().toLowerCase();
-    if ((await prisma.user.findMany({ where: { OR: [{ email: email }, { name: name }] } })).length == 0) {
+    if ((await prisma.user.findFirst({ where: { OR: [{ email: email }, { name: { equals: name, mode: "insensitive" } }] } })) == null) {
         const newUser = {
             name: name,
             email: email,
@@ -49,8 +49,10 @@ async function createUser(name: any, email: any, pass: any) {
 
             });
         }
+        return true;
     } else {
         console.log("User already exists");
+        return false;
     }
 }
 
@@ -60,6 +62,39 @@ async function getUsers() {
     return users;
 }
 
+async function deleteUser(email: any, pass: any) {
+    if (await prisma.user.findFirst({ where: { AND: [{ email: email }, { password: pass }] } }) != null) {
+        await prisma.user.delete({ where: { email: email } });
+        return true
+    } else {
+        return false;
+    }
+}
+
+async function createMovie(title: any, synopsis: any, director: any) {
+    if ((await prisma.movie.findUnique({ where: { title: title } })) != null) {
+        const newMovie = {
+            title: title,
+            synopsis: synopsis,
+            director: director
+        };
+        const parsed = MovieSchema.safeParse(newMovie);
+        if (parsed.success) {
+            await prisma.movie.create({
+                data: {
+                    title: title,
+                    synopsis: synopsis,
+                    director: director
+                }
+
+            });
+        }
+        return true;
+    } else {
+        console.log("Movie already exists");
+        return false
+    }
+}
 
 async function getMovies() {
     const movies = await prisma.movie.findMany({ include: { reviews: true } });
