@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie } from "./index";
+import { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn } from "./index";
 
 
 async function main() {
@@ -94,6 +94,29 @@ app.delete("/movie/delete", async (req: any, res: any) => {
         res.status(500).json({ error: "inexistent movie" });
     }
 });
+
+
+//handling update requests
+
+app.patch("/user/patch", async (req: any, res: any) => {
+    const upd = req.body;
+
+    if (await updateUserName(upd.data.email, upd.data.password, upd.data.name)) {
+        res.status(200).json(upd);
+    } else {
+        res.status(500).json({ error: "failed to find user or incompatible data types" });
+    }
+})
+
+app.patch("/movie/patch", async (req: any, res: any) => {
+    const upd = req.body;
+
+    if (await updateMovieSyn(upd.data.title, upd.data.synopsis)) {
+        res.status(200).json(upd);
+    } else {
+        res.status(500).json({ error: "failed to find movie" });
+    }
+})
 
 main()
     .catch(async (e) => {

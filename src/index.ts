@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie };
+export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn };
 
 const prisma = new PrismaClient();
 
@@ -71,6 +71,27 @@ async function deleteUser(email: any, pass: any) {
     }
 }
 
+async function updateUserName(email: any, pass: any, name: any) {
+    email = email.trim().toLowerCase();
+    if ((await prisma.user.findFirst({ where: { AND: [{ email: email }, { password: pass }] } })) != null) {
+        const newUser = {
+            name: name,
+            email: email,
+            password: pass
+        };
+        const parsed = UserSchema.safeParse(newUser);
+        if (parsed.success) {
+            await prisma.user.update({
+                where: { email: email },
+                data: { name: name }
+            });
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
 async function createMovie(title: any, synopsis: any, director: any) {
     if ((await prisma.movie.findFirst({ where: { title: title } })) == null) {
         const newMovie = {
@@ -106,8 +127,16 @@ async function deleteMovie(title: any) {
     console.dir(prisma.movie.findFirst({ where: { title: title } }), { depth: null });
     if (await prisma.movie.findFirst({ where: { title: title } }) != null) {
         await prisma.movie.delete({ where: { title: title } });
-        return true
+        return true;
     } else {
         return false;
     }
+}
+
+async function updateMovieSyn(title: any, syn: any) {
+    if (await prisma.movie.findFirst({ where: { title: title } }) != null) {
+        await prisma.movie.update({ where: { title: title }, data: { synopsis: syn } });
+        return true;
+    }
+    return false;
 }
