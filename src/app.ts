@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { createUser, createMovie, prisma, getUsers, getMovies, deleteUser } from "./index";
+import { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie } from "./index";
 
 
 async function main() {
@@ -67,7 +67,7 @@ app.post("/movie", async (req: any, res: any,) => {
             res.status(500).json({ error: "couldn't post" });
         }
     } else {
-        res.status(500).json({ error: "user already exists" });
+        res.status(500).json({ error: "movie already exists" });
     }
 })
 
@@ -84,6 +84,16 @@ app.delete("/user/delete", async (req: any, res: any) => {
     }
 
 })
+
+app.delete("/movie/delete", async (req: any, res: any) => {
+    const mov = req.body;
+
+    if (await deleteMovie(mov.data.title)) {
+        res.status(200).json(mov);
+    } else {
+        res.status(500).json({ error: "inexistent movie" });
+    }
+});
 
 main()
     .catch(async (e) => {

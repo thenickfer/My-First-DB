@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser };
+export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie };
 
 const prisma = new PrismaClient();
 
@@ -72,7 +72,7 @@ async function deleteUser(email: any, pass: any) {
 }
 
 async function createMovie(title: any, synopsis: any, director: any) {
-    if ((await prisma.movie.findUnique({ where: { title: title } })) != null) {
+    if ((await prisma.movie.findFirst({ where: { title: title } })) == null) {
         const newMovie = {
             title: title,
             synopsis: synopsis,
@@ -102,4 +102,12 @@ async function getMovies() {
     return movies;
 }
 
-
+async function deleteMovie(title: any) {
+    console.dir(prisma.movie.findFirst({ where: { title: title } }), { depth: null });
+    if (await prisma.movie.findFirst({ where: { title: title } }) != null) {
+        await prisma.movie.delete({ where: { title: title } });
+        return true
+    } else {
+        return false;
+    }
+}
