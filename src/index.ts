@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-export { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn };
+export {
+    createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn,
+    getMovieReviews, getUserReviews, postReview
+};
 
 const prisma = new PrismaClient();
 
@@ -125,7 +128,9 @@ async function getMovies() {
 
 async function deleteMovie(title: any) {
     console.dir(prisma.movie.findFirst({ where: { title: title } }), { depth: null });
-    if (await prisma.movie.findFirst({ where: { title: title } }) != null) {
+    const filme = await prisma.movie.findFirst({ where: { title: title } });
+    if (filme != null) {
+        await prisma.review.deleteMany({ where: { movieId: filme.id } })
         await prisma.movie.delete({ where: { title: title } });
         return true;
     } else {
@@ -136,6 +141,37 @@ async function deleteMovie(title: any) {
 async function updateMovieSyn(title: any, syn: any) {
     if (await prisma.movie.findFirst({ where: { title: title } }) != null) {
         await prisma.movie.update({ where: { title: title }, data: { synopsis: syn } });
+        return true;
+    }
+    return false;
+}
+
+
+
+async function getMovieReviews(title: any) {
+    const reviews = await prisma.movie.findFirst({ where: { title: title }, select: { reviews: true } });
+    return reviews;
+}
+
+async function getUserReviews(name: any) {
+    const reviews = await prisma.review.findMany({ where: { authorName: name } });
+    return reviews;
+}
+
+async function postReview(authorName: any, title: any, comment: any, rating: number) {
+    const author = await prisma.user.findFirst({ where: { name: authorName } });
+    const movie = await prisma.movie.findFirst({ where: { title: title } });
+
+    if (author != null && movie != null) {
+        const movId = movie.id;
+        await prisma.review.create({
+            data: {
+                comment: comment,
+                rating: rating,
+                authorName: authorName,
+                movieId: movId
+            }
+        });
         return true;
     }
     return false;

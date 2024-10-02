@@ -1,6 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn } from "./index";
+import {
+    createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn,
+    getMovieReviews, getUserReviews, postReview
+} from "./index";
 
 
 async function main() {
@@ -38,6 +41,31 @@ app.get("/movie/all", async (req: any, res: any) => {
     }
 })
 
+app.get("/reviews/:user", async (req: any, res: any) => {
+    const name = req.params.user;
+    const usersR = await getUserReviews(name);
+    try {
+        res.status(200).json(usersR)
+    } catch (error) {
+        res.status(500).json({ error: "couldn't fetch" })
+    }
+
+
+})
+
+app.get("/movie/reviews/:movie", async (req: any, res: any) => {
+    let name = req.params.movie;
+    name = name.replace("+", " ");
+    console.log(name);
+    const movieR = await getMovieReviews(name);
+    try {
+        res.status(200).json(movieR)
+    } catch (error) {
+        res.status(500).json({ error: "couldn't fetch" })
+    }
+
+
+})
 
 //handling post requests
 
@@ -71,6 +99,19 @@ app.post("/movie", async (req: any, res: any,) => {
     }
 })
 
+app.post("/movie/reviews/:movie", async (req: any, res: any) => {
+    let name = req.params.movie;
+    name = name.replace("+", " ");
+    const review = req.body;
+
+    if (await postReview(review.authorName, name, review.comment, review.rating)) {
+        res.status(200).json(review)
+    } else {
+        res.status(500).json({ error: "couldn't post" })
+    }
+
+
+})
 
 //handling delete requests
 
@@ -85,11 +126,10 @@ app.delete("/user/delete", async (req: any, res: any) => {
 
 })
 
-app.delete("/movie/delete", async (req: any, res: any) => {
-    const mov = req.body;
+app.delete("/movie/delete/:title", async (req: any, res: any) => {
 
-    if (await deleteMovie(mov.data.title)) {
-        res.status(200).json(mov);
+    if (await deleteMovie(req.params.title)) {
+        res.status(200).json({ success: "movie deleted" });
     } else {
         res.status(500).json({ error: "inexistent movie" });
     }
@@ -98,7 +138,7 @@ app.delete("/movie/delete", async (req: any, res: any) => {
 
 //handling update requests
 
-app.patch("/user/patch", async (req: any, res: any) => {
+app.patch("/user/patch/", async (req: any, res: any) => {
     const upd = req.body;
 
     if (await updateUserName(upd.data.email, upd.data.password, upd.data.name)) {

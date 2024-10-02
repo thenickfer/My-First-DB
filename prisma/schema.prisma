@@ -14,21 +14,19 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  email    String   @unique
-  name     String   @unique
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  email    String @unique
+  name     String @unique
   password String
-  reviews  Review[]
 }
 
 model Review {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  comment  String
-  rating   Int
-  author   User   @relation(fields: [authorId], references: [id])
-  authorId String @db.ObjectId
-  movie    Movie  @relation(fields: [movieId], references: [id])
-  movieId  String @db.ObjectId
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  comment    String
+  rating     Int
+  authorName String
+  movie      Movie  @relation(fields: [movieId], references: [id])
+  movieId    String @db.ObjectId
 }
 
 model Movie {
