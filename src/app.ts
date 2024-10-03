@@ -100,8 +100,7 @@ app.post("/movie", async (req: any, res: any,) => {
 })
 
 app.post("/movie/reviews/:movie", async (req: any, res: any) => {
-    let name = req.params.movie;
-    name = name.replace("+", " ");
+    const name = req.params.movie.replace("+", " ");
     const review = req.body;
 
     if (await postReview(review.authorName, name, review.comment, review.rating)) {
@@ -155,6 +154,20 @@ app.patch("/movie/patch", async (req: any, res: any) => {
         res.status(200).json(upd);
     } else {
         res.status(500).json({ error: "failed to find movie" });
+    }
+})
+
+app.patch("/movie/reviews/:movie/:username", async (req: any, res: any) => {
+    const movName = req.params.movie.replace("+", " ");
+    const usrName = req.params.username;
+    const upd = req.body;
+    const mov = await prisma.movie.findUnique({ where: { title: movName } });
+    const movId = mov?.id;
+    if (await prisma.review.findFirst({ where: { AND: [{ authorName: usrName }, { movieId: movId }] } }) != null) {
+        await prisma.review.updateMany({ where: { AND: [{ authorName: usrName }, { movieId: movId }] }, data: { comment: upd.comment, rating: upd.rating } });
+        res.status(200).json(upd);
+    } else {
+        res.status(500);
     }
 })
 
