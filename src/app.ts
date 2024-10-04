@@ -8,8 +8,7 @@ import {
 
 async function main() {
 
-    createUser("CleitonMalandro", "cleiton@roubacartao.com", "12345");
-
+    console.log("Connecting...");
 
 }
 
@@ -114,10 +113,10 @@ app.post("/movie/reviews/:movie", async (req: any, res: any) => {
 
 //handling delete requests
 
-app.delete("/user/delete", async (req: any, res: any) => {
+app.delete("/user/delete/:email", async (req: any, res: any) => {
     const usr = req.body;
-
-    if (await deleteUser(usr.data.email, usr.data.password)) {
+    const name = req.params.email;
+    if (await deleteUser(name, usr.data.password)) {
         res.status(200).json(usr);
     } else {
         res.status(500).json({ error: "inexistent user" });
