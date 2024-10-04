@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export {
     createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn,
-    getMovieReviews, getUserReviews, postReview
+    getMovieReviews, getUserReviews, postReview, deleteReview
 };
 
 const prisma = new PrismaClient();
@@ -161,9 +161,11 @@ async function getUserReviews(name: any) {
 async function postReview(authorName: any, title: any, comment: any, rating: number) {
     const author = await prisma.user.findFirst({ where: { name: authorName } });
     const movie = await prisma.movie.findFirst({ where: { title: title } });
-
     if (author != null && movie != null) {
         const movId = movie.id;
+        if (await prisma.review.findFirst({ where: { AND: [{ authorName: author.name }, { movieId: movId }] } })) {
+            return false;
+        }
         await prisma.review.create({
             data: {
                 comment: comment,
@@ -172,6 +174,16 @@ async function postReview(authorName: any, title: any, comment: any, rating: num
                 movieId: movId
             }
         });
+        return true;
+    }
+    return false;
+}
+
+async function deleteReview(authorName: any, title: any) {
+    const movie = await prisma.movie.findUnique({ where: { title: title } });
+    if (movie == null) { return false; }
+    if (await prisma.review.findFirst({ where: { AND: [{ authorName: authorName }, { movieId: movie.id }] } }) != null) {
+        await prisma.review.deleteMany({ where: { AND: [{ authorName: authorName }, { movieId: movie.id }] } });
         return true;
     }
     return false;

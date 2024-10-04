@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import {
     createUser, createMovie, prisma, getUsers, getMovies, deleteUser, deleteMovie, updateUserName, updateMovieSyn,
-    getMovieReviews, getUserReviews, postReview
+    getMovieReviews, getUserReviews, postReview, deleteReview
 } from "./index";
 
 
@@ -134,6 +134,14 @@ app.delete("/movie/delete/:title", async (req: any, res: any) => {
     }
 });
 
+app.delete("/movie/reviews/:movie/:username", async (req: any, res: any) => {
+    if (await deleteReview(req.params.username, req.params.movie.replace("+", " "))) {
+        res.status(200).json({ success: "review deleted" });
+    } else {
+        res.status(500).json({ error: "couldn't delete" });
+    }
+})
+
 
 //handling update requests
 
@@ -170,6 +178,8 @@ app.patch("/movie/reviews/:movie/:username", async (req: any, res: any) => {
         res.status(500);
     }
 })
+
+
 
 main()
     .catch(async (e) => {
